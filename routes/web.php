@@ -19,7 +19,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-
+Route::middleware('auth')->group(function () {
 
 Route::resource('categories','App\Http\Controllers\Admin\CategoryController')
  ->names([
@@ -42,8 +42,10 @@ Route::resource('products','App\Http\Controllers\Admin\ProductsController')
         'update'  => 'admin.products.update',
         'destroy' => 'admin.products.destroy',
     ]);
+    
 Route::resource('inventories','App\Http\Controllers\Admin\InventoryController');
 Route::resource('users','App\Http\Controllers\Admin\UserController');
+});
 
 Auth::routes();
 

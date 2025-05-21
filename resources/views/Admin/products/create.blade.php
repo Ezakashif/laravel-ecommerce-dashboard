@@ -5,9 +5,10 @@
                         <div class="bg-light rounded h-100 p-4">
                             <h6 class="mb-4">Add Product</h6>
                             <div class="form-floating mb-3">
-                              <form action="{{ route('admin.products.store') }}" method="POST">
+                           <form action="{{ route('admin.products.store') }}" method="POST">
     @csrf
 
+    <!-- Product Fields -->
     <div class="form-floating mb-3">
         <input type="text" name="name" class="form-control" placeholder="Product Name" required>
         <label>Product Name</label>
@@ -33,8 +34,71 @@
         <label>Select Subcategory</label>
     </div>
 
+    <hr>
+
+    <!-- Variant Section -->
+    <div id="variant-wrapper">
+        <h5>Product Variants</h5>
+        <div class="variant-row row g-2">
+            <div class="col-md-3">
+                <input type="text" name="variants[0][sku]" class="form-control" placeholder="SKU" required>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="variants[0][attributes][size]" class="form-control" placeholder="Size" required>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="variants[0][attributes][color]" class="form-control" placeholder="Color" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" step="0.01" name="variants[0][price_override]" class="form-control" placeholder="Price">
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger" onclick="removeVariant(this)">X</button>
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="btn btn-secondary mt-2" id="add-variant">Add Variant</button>
+
+    <hr>
+
     <button type="submit" class="btn btn-success w-100">Create Product</button>
 </form>
+
               
+<script>
+    let variantIndex = 1;
+
+    document.getElementById('add-variant').addEventListener('click', function () {
+        const wrapper = document.getElementById('variant-wrapper');
+
+        const html = `
+        <div class="variant-row row g-2 mt-2">
+            <div class="col-md-3">
+                <input type="text" name="variants[${variantIndex}][sku]" class="form-control" placeholder="SKU" required>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="variants[${variantIndex}][attributes][size]" class="form-control" placeholder="Size" required>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="variants[${variantIndex}][attributes][color]" class="form-control" placeholder="Color" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" step="0.01" name="variants[${variantIndex}][price_override]" class="form-control" placeholder="Price">
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger" onclick="removeVariant(this)">X</button>
+            </div>
+        </div>
+        `;
+
+        wrapper.insertAdjacentHTML('beforeend', html);
+        variantIndex++;
+    });
+
+    function removeVariant(button) {
+        button.closest('.variant-row').remove();
+    }
+</script>
 
 @include('layouts.footer')

@@ -37,21 +37,43 @@ class ProductsController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string',
-            'base_price' => 'required|numeric',
-            'description' => 'nullable|string',
-            'category_id' => 'required|exists:categories,id'
-        ]);
+        public function store(Request $request)
+        {
+            $validated = $request->validate([
+                'name' => 'required|string',
+                'base_price' => 'required|numeric',
+                'description' => 'nullable|string',
+                'category_id' => 'required|exists:categories,id',
 
-        $product = Product::create($request->only('name', 'description', 'base_price'));
-        $product->categories()->attach($request->category_id);
+                'variants' => 'required|array',
+                'variants.*.sku' => 'required|string|distinct|unique:product_variants,sku',
+                'variants.*.attributes.size' => 'required|string',
+                'variants.*.attributes.color' => 'required|string',
+                'variants.*.price_override' => 'nullable|numeric',
+            ]);
 
-        return redirect()->route('admin.products.index')->with('success', 'Product created.');
+            // Create the product
+            $product = Product::create([
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? null,
+                'base_price' => $validated['base_price'],
+            ]);
 
-    }
+            // Attach category
+            $product->categories()->attach($validated['category_id']);
+
+            // Create each variant
+            foreach ($validated['variants'] as $variant) {
+                $product->variants()->create([
+                    'sku' => $variant['sku'],
+                    'attributes' => $variant['attributes'],
+                    'price_override' => $variant['price_override'] ?? null,
+                ]);
+            }
+
+            return redirect()->route('admin.products.index')->with('success', 'Product and variants created.');
+        }
+
 
     /**
      * Display the specified resource.
