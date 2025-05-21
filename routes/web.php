@@ -19,18 +19,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/blank', function () {
-    return view('blank');
-});
 
-Route::get('/form', function () {
-    return view('form');
-});
-
-
-Route::get('/product', function () {
-    return view('admin.products.index');
-});
 
 Route::resource('categories','App\Http\Controllers\Admin\CategoryController')
  ->names([
