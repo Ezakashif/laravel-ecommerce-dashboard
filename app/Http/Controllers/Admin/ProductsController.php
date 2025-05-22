@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductVariant;
+
 
 class ProductsController extends Controller
 {
@@ -16,8 +18,8 @@ class ProductsController extends Controller
      */
     public function index()
     {
-        $products = Product::with('categories.parent')->get();
-        return view('admin.products.index', compact('products'));
+    $products = Product::with(['categories.parent', 'variants'])->paginate(10);
+    return view('admin.products.index', compact('products'));
     }
 
     /**
@@ -107,26 +109,57 @@ class ProductsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Product $product)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'base_price' => 'required|numeric',
-            'description' => 'nullable|string',
-            'category_id' => 'required|exists:categories,id',
-        ]);
+   public function update(Request $request, Product $product)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'base_price' => 'required|numeric',
+        'description' => 'nullable|string',
+        'category_id' => 'required|exists:categories,id',
 
-        $product->update([
-            'name' => $request->name,
-            'base_price' => $request->base_price,
-            'description' => $request->description,
-        ]);
+        // Only validate variants if present
+        'variants' => 'nullable|array',
+        'variants.*.sku' => 'required|string|distinct',
+        'variants.*.attributes.size' => 'nullable|string',
+        'variants.*.attributes.color' => 'required|string',
+        'variants.*.price_override' => 'nullable|numeric',
+    ]);
 
-        // Sync category relationship
-        $product->categories()->sync([$request->category_id]);
+    // Update the product itself
+    $product->update([
+        'name' => $validated['name'],
+        'base_price' => $validated['base_price'],
+        'description' => $validated['description'] ?? null,
+    ]);
 
-        return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
+    // Sync category
+    $product->categories()->sync([$validated['category_id']]);
+
+    // Create new variants (skip duplicate SKUs manually if needed)
+    if (!empty($validated['variants'])) {
+        foreach ($validated['variants'] as $variant) {
+            // Prevent duplicate SKUs from being inserted
+            if (!\App\Models\ProductVariant::where('sku', $variant['sku'])->exists()) {
+                $product->variants()->create([
+                    'sku' => $variant['sku'],
+                    'attributes' => $variant['attributes'],
+                    'price_override' => $variant['price_override'] ?? null,
+                ]);
+            }
+        }
     }
+
+    return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
+}
+
+
+    public function destroyVariant($variantId)
+{
+    $variant = ProductVariant::findOrFail($variantId);
+    $variant->delete();
+
+    return redirect()->back()->with('success', 'Product variant deleted successfully.');
+}
 
     /**
      * Remove the specified resource from storage.

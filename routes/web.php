@@ -42,7 +42,14 @@ Route::resource('products','App\Http\Controllers\Admin\ProductsController')
         'update'  => 'admin.products.update',
         'destroy' => 'admin.products.destroy',
     ]);
-    
+Route::resource('productVariants', 'App\Http\Controllers\Admin\ProductVariantController')
+    ->names([
+        'update' => 'admin.productVariants.update',
+        'destroy' => 'admin.productVariants.destroy',
+    ])
+    ->only(['update', 'destroy']);
+
+
 Route::resource('inventories','App\Http\Controllers\Admin\InventoryController');
 Route::resource('users','App\Http\Controllers\Admin\UserController');
 });

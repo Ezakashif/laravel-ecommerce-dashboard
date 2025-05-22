@@ -46,11 +46,14 @@
             <div class="col-md-3">
                 <input type="text" name="variants[0][attributes][size]" class="form-control" placeholder="Size" required>
             </div>
-            <div class="col-md-3">
-                <input type="text" name="variants[0][attributes][color]" class="form-control" placeholder="Color" required>
-            </div>
             <div class="col-md-2">
-                <input type="number" step="0.01" name="variants[0][price_override]" class="form-control" placeholder="Price">
+                <div class="d-flex align-items-center gap-2">
+                <label for="variant-color-0" class="form-label mb-0">Color:</label>
+                <input type="color" id="variant-color-0" name="variants[0][attributes][color]" class="form-control form-control-color" value="#000000" required style="width: 50px; height: 38px;">
+            </div>
+            </div>
+            <div class="col-md-3">
+                <input type="number" step="1.00" name="variants[0][price_override]" class="form-control" placeholder="Price">
             </div>
             <div class="col-md-1">
                 <button type="button" class="btn btn-danger" onclick="removeVariant(this)">X</button>
@@ -80,10 +83,11 @@
             <div class="col-md-3">
                 <input type="text" name="variants[${variantIndex}][attributes][size]" class="form-control" placeholder="Size" required>
             </div>
-            <div class="col-md-3">
-                <input type="text" name="variants[${variantIndex}][attributes][color]" class="form-control" placeholder="Color" required>
+            <div class="col-md-2 d-flex align-items-center gap-2">
+                <label for="variant-color-${variantIndex}" class="form-label mb-0">Color:</label>
+                <input type="color" id="variant-color-${variantIndex}" name="variants[${variantIndex}][attributes][color]" class="form-control form-control-color" value="#000000" required style="width: 60px; height: 38px;">
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <input type="number" step="0.01" name="variants[${variantIndex}][price_override]" class="form-control" placeholder="Price">
             </div>
             <div class="col-md-1">
@@ -91,6 +95,7 @@
             </div>
         </div>
         `;
+
 
         wrapper.insertAdjacentHTML('beforeend', html);
         variantIndex++;
