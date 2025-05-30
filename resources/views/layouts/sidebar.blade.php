@@ -28,11 +28,17 @@
                 <div class="navbar-nav w-100">
                     <a href="index.html" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-laptop me-2"></i>Elements</a>
-                        <div class="dropdown-menu bg-transparent border-0">
-                            <a href="button.html" class="dropdown-item">Buttons</a>
-                            <a href="typography.html" class="dropdown-item">Typography</a>
-                            <a href="element.html" class="dropdown-item">Other Elements</a>
+                        <a href="" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-barcode me-2"></i>Products</a>
+                        <div style="margin-left:20px" class="dropdown-menu bg-transparent border-0">
+                            <a href="{{ route('admin.products.index') }}" class="dropdown-item"><i class="fa fa-eye me-2"></i>View All </a>
+                            <a href="{{ route('admin.products.create') }}" class="dropdown-item"><i class="fa fa-plus me-2"></i>Add New </a>
+                        </div>
+                    </div>
+                     <div class="nav-item dropdown">
+                        <a href="" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-book me-2"></i>Categories</a>
+                        <div style="margin-left:20px" class="dropdown-menu bg-transparent border-0">
+                            <a href="{{ route('admin.categories.index') }}" class="dropdown-item"><i class="fa fa-eye me-2"></i>View All </a>
+                            <a href="{{ route('admin.categories.create') }}" class="dropdown-item"><i class="fa fa-plus me-2"></i>Add New </a>
                         </div>
                     </div>
                     <a href="widget.html" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Widgets</a>
