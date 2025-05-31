@@ -23,13 +23,15 @@
             <td>${{ number_format($product->base_price, 2) }}</td>
 
             <td>
-                @foreach ($product->categories as $category)
-                    @if ($category->parent)
-                        {{ $category->parent->name }} → 
-                    @endif
-                    {{ $category->name }}
-                @endforeach
-            </td>
+    @forelse ($product->categories as $category)
+        @if ($category->parent)
+            {{ $category->parent->name }} →
+        @endif
+        {{ $category->name }}
+    @empty
+        <em>No active category</em>
+    @endforelse
+</td>
 
             <td>
                 @if ($product->variants->count())

@@ -17,10 +17,21 @@ class ProductsController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-    $products = Product::with(['categories.parent', 'variants'])->paginate(10);
+{
+    $products = Product::whereHas('categories', function ($q) {
+        $q->whereNull('deleted_at');
+    })
+    ->with([
+        'categories' => function ($q) {
+            $q->whereNull('deleted_at');
+        },
+        'categories.parent',
+        'variants'
+    ])
+    ->paginate(10);
+
     return view('admin.products.index', compact('products'));
-    }
+}
 
     /**
      * Show the form for creating a new resource.
