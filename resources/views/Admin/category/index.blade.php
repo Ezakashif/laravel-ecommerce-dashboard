@@ -6,7 +6,7 @@
 
                             <h6 class="mb-4">Categoris List</h6>
                              <div class="table-responsive">
-                                 <a class="btn btn-success btn-sm mb-2" href="{{ route('admin.categories.create') }}">Add New Category</a>
+                                 <a class="btn btn-primary btn-sm mb-2" href="{{ route('admin.categories.create') }}">Add New Category</a>
                             <table class="table">
                                 <thead>
                                     <tr>

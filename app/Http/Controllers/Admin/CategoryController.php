@@ -22,6 +22,19 @@ class CategoryController extends Controller
         return view('admin.category.index', compact('categories'));
     }
 
+     /**
+     * Display a listing of the trashed categories.
+     *
+     * @return \Illuminate\Http\Response
+     */
+
+     public function trashed()
+    {
+        $categories = Category::onlyTrashed()->with('parent')->get();
+        return view('admin.category.trashed', compact('categories'));
+    }
+
+
     /**
      * Show the form for creating a new resource.
      *
@@ -114,7 +127,7 @@ class CategoryController extends Controller
 }
 
     /**
-     * Remove the specified resource from storage.
+     * Soft delete the specified resource from storage.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -126,5 +139,34 @@ class CategoryController extends Controller
         return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully.');
 
       
+    }
+
+     /**
+     * Restore the specified category in storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+     public function restore($id)
+    {
+        $category = Category::onlyTrashed()->findOrFail($id);
+        $category->restore();
+
+        return redirect()->back()->with('success', 'Category restored successfully.');
+    }
+
+     /**
+     * Permanently delete the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+     public function forceDelete($id)
+    {
+        $category = Category::onlyTrashed()->findOrFail($id);
+        $category->forceDelete();
+
+        return redirect()->back()->with('success', 'Category permanently deleted.');
     }
 }

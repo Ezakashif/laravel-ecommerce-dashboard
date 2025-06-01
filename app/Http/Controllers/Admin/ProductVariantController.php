@@ -69,23 +69,45 @@ class ProductVariantController extends Controller
      * @return \Illuminate\Http\Response
      */
   
-         public function update(Request $request, ProductVariant $productVariant)
-    {
-        $validated = $request->validate([
-            'sku' => 'required|string|unique:product_variants,sku,' . $productVariant->id,
-            'attributes.size' => 'nullable|string',
-            'attributes.color' => 'required|string',
-            'price_override' => 'nullable|numeric',
-        ]);
+       public function update(Request $request, ProductVariant $productVariant)
+{
+    $validated = $request->validate([
+        'sku' => 'required|string|unique:product_variants,sku,' . $productVariant->id,
+        'attributes.size' => 'nullable|string',
+        'attributes.color' => 'required|string',
+        'price_override' => 'nullable|numeric',
+        'images.*' => 'nullable|image|max:2048',  // Validate images if any
+        'delete_images' => 'nullable|array',
+        'delete_images.*' => 'integer|exists:variant_images,id',
+    ]);
 
-        $productVariant->update([
-            'sku' => $validated['sku'],
-            'attributes' => $validated['attributes'],
-            'price_override' => $validated['price_override'],
-        ]);
+    $productVariant->update([
+        'sku' => $validated['sku'],
+        'attributes' => $validated['attributes'],
+        'price_override' => $validated['price_override'],
+    ]);
 
-        return back()->with('success', 'Variant updated successfully.');
+    // Delete selected images
+    if (!empty($validated['delete_images'])) {
+        foreach ($validated['delete_images'] as $imgId) {
+            $image = $productVariant->images()->find($imgId);
+            if ($image) {
+                \Storage::delete($image->path);
+                $image->delete();
+            }
+        }
     }
+
+    // Save new uploaded images
+    if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $imageFile) {
+            $path = $imageFile->store('variant_images', 'public');
+            $productVariant->images()->create(['path' => $path]);
+        }
+    }
+
+    return back()->with('success', 'Variant updated successfully.');
+}
 
     
 

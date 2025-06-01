@@ -31,4 +31,5 @@ class ProductVariant extends Model
     {
         return $this->hasOne(ProductImage::class)->where('is_primary', true);
     }
+
 }

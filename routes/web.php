@@ -32,6 +32,12 @@ Route::resource('categories','App\Http\Controllers\Admin\CategoryController')
         'destroy' => 'admin.categories.destroy',
     ]);
 
+// Custom soft delete routes
+    Route::get('trashed', [App\Http\Controllers\Admin\CategoryController::class, 'trashed'])->name('admin.categories.trashed');
+    Route::post('{id}/restore', [App\Http\Controllers\Admin\CategoryController::class, 'restore'])->name('admin.categories.restore');
+    Route::delete('{id}/force-delete', [App\Http\Controllers\Admin\CategoryController::class, 'forceDelete'])->name('admin.categories.forceDelete');
+
+
 Route::resource('products','App\Http\Controllers\Admin\ProductsController')
 ->names([
         'index'   => 'admin.products.index',
@@ -46,8 +52,14 @@ Route::resource('productVariants', 'App\Http\Controllers\Admin\ProductVariantCon
     ->names([
         'update' => 'admin.productVariants.update',
         'destroy' => 'admin.productVariants.destroy',
+         'edit' => 'admin.productVariants.edit',
     ])
     ->only(['update', 'destroy']);
+    
+// Routes for variant index, create, and store with product context
+Route::get('admin/productVariants/{product}', [ProductVariantController::class, 'index'])->name('admin.productVariants.index');
+Route::get('admin/productVariants/{product}/create', [ProductVariantController::class, 'create'])->name('admin.productVariants.create');
+Route::post('admin/productVariants/{product}', [ProductVariantController::class, 'store'])->name('admin.productVariants.store');
 
 
 Route::resource('inventories','App\Http\Controllers\Admin\InventoryController');

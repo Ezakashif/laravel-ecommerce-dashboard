@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductVariant;
+use Illuminate\Support\Facades\Storage;
 
 
 class ProductsController extends Controller
@@ -50,42 +51,70 @@ class ProductsController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-        public function store(Request $request)
-        {
-            $validated = $request->validate([
-                'name' => 'required|string',
-                'base_price' => 'required|numeric',
-                'description' => 'nullable|string',
-                'category_id' => 'required|exists:categories,id',
+     
 
-                'variants' => 'required|array',
-                'variants.*.sku' => 'required|string|distinct|unique:product_variants,sku',
-                'variants.*.attributes.size' => 'required|string',
-                'variants.*.attributes.color' => 'required|string',
-                'variants.*.price_override' => 'nullable|numeric',
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|string',
+        'base_price' => 'required|numeric',
+        'description' => 'nullable|string',
+        'category_id' => 'required|exists:categories,id',
+        'product_images.*' => 'nullable|image',
+
+        'variants' => 'required|array',
+        'variants.*.sku' => 'required|string|distinct|unique:product_variants,sku',
+        'variants.*.attributes.size' => 'required|string',
+        'variants.*.attributes.color' => 'required|string',
+        'variants.*.price_override' => 'nullable|numeric',
+        'variants.*.images.*' => 'nullable|image',
+    ]);
+
+    $product = Product::create([
+        'name' => $validated['name'],
+        'description' => $validated['description'] ?? null,
+        'base_price' => $validated['base_price'],
+    ]);
+
+    $product->categories()->attach($validated['category_id']);
+
+    if ($request->hasFile('product_images')) {
+        foreach ($request->file('product_images') as $index => $image) {
+            $path = $image->store("products/{$product->id}", 'public');
+
+            $product->images()->create([
+                'path' => $path,
+                'is_primary' => $index === 0,
+                'sort_order' => $index,
             ]);
+        }
+    }
 
-            // Create the product
-            $product = Product::create([
-                'name' => $validated['name'],
-                'description' => $validated['description'] ?? null,
-                'base_price' => $validated['base_price'],
-            ]);
+    foreach ($validated['variants'] as $index => $variant) {
+        $variantModel = $product->variants()->create([
+            'sku' => $variant['sku'],
+            'attributes' => $variant['attributes'],
+            'price_override' => $variant['price_override'] ?? null,
+        ]);
 
-            // Attach category
-            $product->categories()->attach($validated['category_id']);
+        $variantImages = data_get($request->variants, "{$index}.images");
 
-            // Create each variant
-            foreach ($validated['variants'] as $variant) {
-                $product->variants()->create([
-                    'sku' => $variant['sku'],
-                    'attributes' => $variant['attributes'],
-                    'price_override' => $variant['price_override'] ?? null,
+        if ($variantImages && is_array($variantImages)) {
+            foreach ($variantImages as $imgIndex => $imgFile) {
+                $path = $imgFile->store("products/variants/{$variant['sku']}", 'public');
+
+                $variantModel->images()->create([
+                    'path' => $path,
+                    'is_primary' => $imgIndex === 0,
+                    'sort_order' => $imgIndex,
                 ]);
             }
-
-            return redirect()->route('admin.products.index')->with('success', 'Product and variants created.');
         }
+    }
+
+    return redirect()->route('admin.products.index')->with('success', 'Product and variants created with images.');
+}
+
 
 
     /**
@@ -120,48 +149,54 @@ class ProductsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-   public function update(Request $request, Product $product)
+ public function update(Request $request, Product $product)
 {
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'base_price' => 'required|numeric',
         'description' => 'nullable|string',
         'category_id' => 'required|exists:categories,id',
-
-        // Only validate variants if present
         'variants' => 'nullable|array',
         'variants.*.sku' => 'required|string|distinct',
         'variants.*.attributes.size' => 'nullable|string',
         'variants.*.attributes.color' => 'required|string',
         'variants.*.price_override' => 'nullable|numeric',
+        'variants.*.images.*' => 'nullable|image|max:2048',
     ]);
 
-    // Update the product itself
+    // Update product
     $product->update([
         'name' => $validated['name'],
         'base_price' => $validated['base_price'],
         'description' => $validated['description'] ?? null,
     ]);
 
-    // Sync category
     $product->categories()->sync([$validated['category_id']]);
 
-    // Create new variants (skip duplicate SKUs manually if needed)
+    // Add new variants
     if (!empty($validated['variants'])) {
-        foreach ($validated['variants'] as $variant) {
-            // Prevent duplicate SKUs from being inserted
+        foreach ($validated['variants'] as $index => $variant) {
             if (!\App\Models\ProductVariant::where('sku', $variant['sku'])->exists()) {
-                $product->variants()->create([
+                $newVariant = $product->variants()->create([
                     'sku' => $variant['sku'],
                     'attributes' => $variant['attributes'],
                     'price_override' => $variant['price_override'] ?? null,
                 ]);
+
+                // Save uploaded images for this variant
+                if (isset($request->variants[$index]['images'])) {
+                    foreach ($request->variants[$index]['images'] as $imageFile) {
+                        $path = $imageFile->store('variant_images', 'public');
+                        $newVariant->images()->create(['path' => $path]);
+                    }
+                }
             }
         }
     }
 
     return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
 }
+
 
 
     public function destroyVariant($variantId)

@@ -38,6 +38,7 @@
                         <a href="" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-book me-2"></i>Categories</a>
                         <div style="margin-left:20px" class="dropdown-menu bg-transparent border-0">
                             <a href="{{ route('admin.categories.index') }}" class="dropdown-item"><i class="fa fa-eye me-2"></i>View All </a>
+                            <a href="{{ route('admin.categories.trashed') }}" class="dropdown-item"><i class="fa fa-trash me-2"></i>View Trashed </a>
                             <a href="{{ route('admin.categories.create') }}" class="dropdown-item"><i class="fa fa-plus me-2"></i>Add New </a>
                         </div>
                     </div>
