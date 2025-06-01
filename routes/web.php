@@ -50,17 +50,19 @@ Route::resource('products','App\Http\Controllers\Admin\ProductsController')
     ]);
 Route::resource('productVariants', 'App\Http\Controllers\Admin\ProductVariantController')
     ->names([
-        'update' => 'admin.productVariants.update',
-        'destroy' => 'admin.productVariants.destroy',
-         'edit' => 'admin.productVariants.edit',
-    ])
-    ->only(['update', 'destroy']);
-    
-// Routes for variant index, create, and store with product context
-Route::get('admin/productVariants/{product}', [ProductVariantController::class, 'index'])->name('admin.productVariants.index');
-Route::get('admin/productVariants/{product}/create', [ProductVariantController::class, 'create'])->name('admin.productVariants.create');
-Route::post('admin/productVariants/{product}', [ProductVariantController::class, 'store'])->name('admin.productVariants.store');
+            'index' => 'admin.productVariants.index',
+            'store' => 'admin.productVariants.store',
+            'edit' => 'admin.productVariants.edit',
+            'update' => 'admin.productVariants.update',
+            'destroy' => 'admin.productVariants.destroy',
+            'show' => 'admin.productVariants.show',
+    ]);
 
+//Custom route to view variants for a specific product
+Route::get('products/{product}/variants', [App\Http\Controllers\Admin\ProductVariantController::class, 'indexByProduct'])
+    ->name('admin.products.variants.index');
+    Route::get('productVariants/create', [App\Http\Controllers\Admin\ProductVariantController::class, 'create'])
+    ->name('admin.productVariants.create');
 
 Route::resource('inventories','App\Http\Controllers\Admin\InventoryController');
 Route::resource('users','App\Http\Controllers\Admin\UserController');

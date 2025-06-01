@@ -48,41 +48,9 @@
                     </td>
 
                   <td>
-    @if ($product->variants->count())
-        <ul style="padding-left: 1rem; list-style: none;">
-            @foreach($product->variants as $variant)
-                <li class="mb-3">
-                    <div><strong>SKU:</strong> {{ $variant->sku }}</div>
-                    <div><strong>Size:</strong> {{ $variant->attributes['size'] }}</div>
-                    <div>
-                        <strong>Color:</strong>
-                        <span style="display:inline-block;width:20px;height:20px;background-color:{{ $variant->attributes['color'] }};border:1px solid #ccc;"></span>
-                        <small>{{ $variant->attributes['color'] }}</small>
-                    </div>
-                    @if($variant->price_override)
-                        <div><strong>Override Price:</strong> ${{ $variant->price_override }}</div>
-                    @endif
+  <a href="{{ route('admin.products.variants.index', $product->id) }}" class="btn btn-sm btn-warning">View Variants</a>
 
-                    {{-- Variant images --}}
-                    <div class="mt-2 d-flex gap-2 flex-wrap">
-                        @if ($variant->images->count())
-                            @foreach ($variant->images as $image)
-                                <img src="{{ asset('storage/' . $image->path) }}" 
-                                     alt="Variant Image" 
-                                     style="width: 60px; height: 60px; object-fit: cover; border:1px solid #ccc; border-radius: 4px;">
-                            @endforeach
-                        @else
-                            <div class="text-muted" style="font-size: 0.85rem;">No Image</div>
-                        @endif
-                    </div>
-
-                    <hr>
-                </li>
-            @endforeach
-        </ul>
-    @else
-        <em>No variants</em>
-    @endif
+                        
 </td>
 
                     <td>
