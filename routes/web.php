@@ -16,7 +16,7 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
 Route::middleware('auth')->group(function () {
@@ -64,7 +64,9 @@ Route::get('products/{product}/variants', [App\Http\Controllers\Admin\ProductVar
     Route::get('productVariants/create', [App\Http\Controllers\Admin\ProductVariantController::class, 'create'])
     ->name('admin.productVariants.create');
 
-Route::resource('inventories','App\Http\Controllers\Admin\InventoryController');
+Route::resource('inventories', App\Http\Controllers\Admin\InventoryController::class)
+->only(['index', 'edit', 'update']);
+
 Route::resource('users','App\Http\Controllers\Admin\UserController');
 });
 

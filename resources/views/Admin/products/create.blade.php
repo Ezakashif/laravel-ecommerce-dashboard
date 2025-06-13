@@ -35,6 +35,8 @@
             <label>Description</label>
         </div>
 
+        <input type="hidden" name="has_variant" value="NULL">
+
         <div class="form-floating mb-3">
             <select name="category_id" class="form-select" required>
                 <option value="">-- Select Subcategory --</option>

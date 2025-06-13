@@ -52,36 +52,42 @@ class ProductsController extends Controller
      * @return \Illuminate\Http\Response
      */
      
-
 public function store(Request $request)
 {
     $validated = $request->validate([
         'name' => 'required|string',
         'base_price' => 'required|numeric',
         'description' => 'nullable|string',
+        'has_variant' => 'required|string',
         'category_id' => 'required|exists:categories,id',
         'product_images.*' => 'nullable|image',
 
-        'variants' => 'required|array',
-        'variants.*.sku' => 'required|string|distinct|unique:product_variants,sku',
-        'variants.*.attributes.size' => 'required|string',
-        'variants.*.attributes.color' => 'required|string',
+        'stock_quantity' => 'nullable|integer|min:0', // For product-level stock
+
+        'variants' => 'nullable|array', // Now variants are optional
+        'variants.*.sku' => 'required_with:variants|string|distinct|unique:product_variants,sku',
+        'variants.*.attributes.size' => 'required_with:variants|string',
+        'variants.*.attributes.color' => 'required_with:variants|string',
         'variants.*.price_override' => 'nullable|numeric',
         'variants.*.images.*' => 'nullable|image',
+        'variants.*.stock_quantity' => 'required_with:variants|integer|min:0',
     ]);
 
+    // Create product
     $product = Product::create([
         'name' => $validated['name'],
         'description' => $validated['description'] ?? null,
         'base_price' => $validated['base_price'],
+        'stock_quantity' => $validated['stock_quantity'] ?? 0, // Product-level stock
+        'has_variant' => 1,
     ]);
 
     $product->categories()->attach($validated['category_id']);
 
+    // Handle product images as before
     if ($request->hasFile('product_images')) {
         foreach ($request->file('product_images') as $index => $image) {
             $path = $image->store("products/{$product->id}", 'public');
-
             $product->images()->create([
                 'path' => $path,
                 'is_primary' => $index === 0,
@@ -90,30 +96,40 @@ public function store(Request $request)
         }
     }
 
-    foreach ($validated['variants'] as $index => $variant) {
-        $variantModel = $product->variants()->create([
-            'sku' => $variant['sku'],
-            'attributes' => $variant['attributes'],
-            'price_override' => $variant['price_override'] ?? null,
-        ]);
+    // Handle variants if any
+    if (!empty($validated['variants'])) {
+        foreach ($validated['variants'] as $index => $variant) {
+            $variantModel = $product->variants()->create([
+                'sku' => $variant['sku'],
+                'attributes' => $variant['attributes'],
+                'price_override' => $variant['price_override'] ?? null,
+            ]);
 
-        $variantImages = data_get($request->variants, "{$index}.images");
+            // Create inventory for variant
+            Inventory::create([
+                'product_variant_id' => $variantModel->id,
+                'stock_quantity' => $variant['stock_quantity'],
+            ]);
 
-        if ($variantImages && is_array($variantImages)) {
-            foreach ($variantImages as $imgIndex => $imgFile) {
-                $path = $imgFile->store("products/variants/{$variant['sku']}", 'public');
-
-                $variantModel->images()->create([
-                    'path' => $path,
-                    'is_primary' => $imgIndex === 0,
-                    'sort_order' => $imgIndex,
-                ]);
+            // Handle variant images as before
+            $variantImages = data_get($request->variants, "{$index}.images");
+            if ($variantImages && is_array($variantImages)) {
+                foreach ($variantImages as $imgIndex => $imgFile) {
+                    $path = $imgFile->store("products/variants/{$variant['sku']}", 'public');
+                    $variantModel->images()->create([
+                        'path' => $path,
+                        'is_primary' => $imgIndex === 0,
+                        'sort_order' => $imgIndex,
+                    ]);
+                }
             }
         }
     }
 
-    return redirect()->route('admin.products.index')->with('success', 'Product and variants created with images.');
+    return redirect()->route('admin.products.index')->with('success', 'Product and variants created successfully.');
 }
+
+
 
 
 

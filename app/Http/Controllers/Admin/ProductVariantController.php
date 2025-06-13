@@ -66,6 +66,9 @@ class ProductVariantController extends Controller
                 'price_override' => $validated['price_override'],
             ]);
 
+               // Update product to indicate it has at least one variant
+            $variant->product->update(['has_variant' => 1]);
+
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $imageFile) {
                     $path = $imageFile->store('variant_images', 'public');
@@ -167,7 +170,16 @@ class ProductVariantController extends Controller
  
          public function destroy(ProductVariant $productVariant)
     {
+        $product = $productVariant->product; // Cache the product before deletion
+
         $productVariant->delete();
+
+        // If no more variants exist for the product, update has_variant to null
+        if ($product->variants()->count() === 0) {
+            $product->update(['has_variant' => null]);
+        }
+
+        
         return back()->with('success', 'Variant deleted successfully.');
     }
 

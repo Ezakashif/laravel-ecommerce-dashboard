@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Inventory;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 
 class InventoryController extends Controller
@@ -13,10 +15,18 @@ class InventoryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        //
-    }
+   public function index()
+{
+    // All products (with or without variants)
+    $products = Product::all();
+
+    // All product variants with related product
+    $variants = ProductVariant::with('product')->get();
+
+    return view('admin.inventory.index', compact('products', 'variants'));
+}
+
+
 
     /**
      * Show the form for creating a new resource.
@@ -36,16 +46,7 @@ class InventoryController extends Controller
      */
     public function store(Request $request)
     {
-        $inventory = new Inventory;
-        $inventory->categories_id =$request->input('categories_id');
-        $inventory->tittle =$request->input('tittle');
-        $inventory->quantity =$request->input('quantity');
-        $inventory->price_per_item =$request->input('price_per_item');
-        $inventory->total_price =$request->input('total_price');
-        $inventory->stock =$request->input('stock');
-        $inventory-> save();
-
-        return $inventory;
+       //
     }
 
     /**
@@ -56,8 +57,7 @@ class InventoryController extends Controller
      */
     public function show($id)
     {
-        $inventory = Inventory::find($id);
-        return $inventory;
+        //
     }
 
     /**
@@ -68,7 +68,7 @@ class InventoryController extends Controller
      */
     public function edit($id)
     {
-        //
+        return view('admin.inventory.update', compact('inventory'));
     }
 
     /**
@@ -78,18 +78,17 @@ class InventoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+   public function update(Request $request, Inventory $inventory)
     {
-        $inventory = Inventory::find($id);
-        $inventory->categories_id =$request->input('categories_id');
-        $inventory->tittle =$request->input('tittle');
-        $inventory->quantity =$request->input('quantity');
-        $inventory->price_per_item =$request->input('price_per_item');
-        $inventory->total_price =$request->input('total_price');
-        $inventory->stock =$request->input('stock');
-        $inventory-> save();
+        $request->validate([
+            'stock_quantity' => 'required|integer|min:0',
+        ]);
 
-        return $inventory;
+        $inventory->update([
+            'stock_quantity' => $request->stock_quantity
+        ]);
+
+        return redirect()->route('inventory.index')->with('success', 'Stock updated successfully.');
     }
 
     /**

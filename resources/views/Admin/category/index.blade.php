@@ -35,7 +35,7 @@
                                                 <form action="{{ route('admin.categories.destroy', $item->id) }}" method="POST" style="display:inline;">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button onclick="return confirm('Delete this category?')" class="btn btn-sm btn-danger">Delete</button>
+                                                    <button onclick="return confirm('Delete this category?')" class="btn btn-sm btn-danger">Trash</button>
                                                 </form>
                                             </td>
                                         </tr>
@@ -54,7 +54,7 @@
                                                     <form action="{{ route('admin.categories.destroy', $child->id) }}" method="POST" style="display:inline;">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button onclick="return confirm('Delete this category?')" class="btn btn-sm btn-danger">Delete</button>
+                                                        <button onclick="return confirm('Delete this category?')" class="btn btn-sm btn-danger">Trash</button>
                                                     </form>
                                                 </td>
                                             </tr>
